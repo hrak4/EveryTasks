@@ -12,6 +12,7 @@
 #import "Detail.h"
 #import "Title.h"
 #import "CustomTableViewCell.h"
+#import "AppDelegate.h"
 
 @interface MasterViewController ()
 {
@@ -119,8 +120,17 @@
 {
     NSLog(@"右にスワイプ");
     //スライドさせたセルを認識（datePickerを保存）
+    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:[sender locationInView:self.tableView]];
+    NSLog(@"%@",indexPath);
+
     
     
+//    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:[sender locationInView:self.tableView]];
+
+//    UITouch *touch = [[sender allTouches] anyObject];
+//    CGPoint touchPoint = [touch locationInView:self.tableView];
+//    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:touchPoint];
+
     
     
     //ナビゲーションコントローラーの機能で画面遷移
@@ -168,20 +178,31 @@
     CustomTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
     [self configureCell:cell atIndexPath:indexPath];
     
-Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
     cell.titleCell.text = title.summary;
+    NSLog(@"セーブデータは%@",title.summary);
+    //Delegateからデータを取得
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    NSString *inPut = appDelegate.inPut;
     
-    NSDateFormatter *df = [[NSDateFormatter alloc] init];
-    df.dateFormat = @"yyyy/MM/dd　HH:mm";
-//    
-//    title.date = [df stringFromDate:title.date];
-//    
-//    cell.titleCell.text = title.date;
+    //coreDateに時間を保存
+    title.date = self.saveDate;
+    title.dateView = inPut;
+    cell.dateCell.text = title.dateView;
     
-    
-  
-    
+//    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+//    df.dateFormat = @"yyyy/MM/dd　HH:mm";
 
+    //Delegateからデータを取得
+//    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+//    NSDate *inPut = appDelegate.inPut;
+    
+    
+    
+//    NSLog(@"masterセーブデータは%@",[df stringFromDate:_saveDate]);
+    
+    
+    
     //セルにチェックマークを付ける
     // NSManagedObject *toDoItem = [self.toDoItems objectAtIndex:indexPath.row];
 //    BOOL completed = [[toDoItem valueForKey:@"completed"] boolValue];
@@ -199,7 +220,7 @@ Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
 //    swipeRightGesture.direction = UISwipeGestureRecognizerDirectionRight;
 //    [cell addGestureRecognizer:swipeRightGesture];
     
-    
+
     UISwipeGestureRecognizer* swipeRightGesture =
     [[UISwipeGestureRecognizer alloc]initWithTarget:self action:@selector(myView_SwipeRight:)];
     swipeRightGesture.direction = UISwipeGestureRecognizerDirectionRight;

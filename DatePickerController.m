@@ -8,7 +8,9 @@
 
 #import "DatePickerController.h"
 #import "MasterViewController.h"
+#import "AppDelegate.h"
 #import "Title.h"
+
 
 @interface DatePickerController ()
 
@@ -65,13 +67,11 @@
     NSString *adjust = [df1 stringFromDate:inPut];
     //秒数が0の形でdate型に戻している
     inPut = [df1 dateFromString:adjust];
-    NSLog(@"入力された日時は%@", [df1 stringFromDate:inPut]);
-    
+    NSLog(@"inPut入力された日時は%@", [df1 stringFromDate:inPut]);
     
     /*******************************************************************
      セルに表示したい時間
      *******************************************************************/
-    
     
     NSDateFormatter *df2 = [[NSDateFormatter alloc] init];
     df2.dateFormat = @"yyyy/MM/dd　HH:mm";
@@ -92,13 +92,16 @@
 //    _nowDate = [df2 stringFromDate:date];
 //    
 //
+
     //MasterViewに保存
-    
-    MasterViewController *saveDate1 = [[MasterViewController alloc]init];
-    saveDate1.saveDate =inPut;
-                                       
-    _nowDate= [df2 stringFromDate:inPut];
-     NSLog(@"取得された日時は%@",_nowDate);
+//    MasterViewController *saveDate1 = [[MasterViewController alloc]init];
+//    saveDate1.saveDate =inPut;
+//    NSLog(@"セーブデータ%@",[df1 stringFromDate:saveDate1.saveDate]);
+    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    appDelegate.inPut = [df2 stringFromDate:inPut];
+     
+//    _nowDate= [df2 stringFromDate:inPut];
+//     NSLog(@"取得された日時は%@",_nowDate);
     
     
     
@@ -114,7 +117,6 @@
     //LocalNotificationを全部キャンセル
     [app cancelAllLocalNotifications];
     
-    
     //notificationで通知
     UILocalNotification *localNotification = [[UILocalNotification alloc] init];
     
@@ -127,9 +129,7 @@
     localNotification.timeZone = [NSTimeZone defaultTimeZone];
     
     [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
-    
-   
-    
+
     
     //前の画面に戻る
     [self dismissViewControllerAnimated:YES completion:nil];

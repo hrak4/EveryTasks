@@ -15,6 +15,7 @@
 @dynamic completed;
 @dynamic date;
 @dynamic summary;
+@dynamic dateView;
 @dynamic detail;
 
 @end
