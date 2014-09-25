@@ -13,10 +13,26 @@
 
 
 @interface DatePickerController ()
+{
+    NSManagedObject *_object;
+}
 
 @end
 
 @implementation DatePickerController
+
+
+//- (Title *) detailItem
+//{
+//    //空の箱を新規作成。　修正ではない  データ構造を明確に定義
+//    if(!_detailItem){
+//        _detailItem = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([Title class]) inManagedObjectContext:self.managedObjectContext];
+////        _detailItem.detail = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([Detail class]) inManagedObjectContext:self.managedObjectContext];
+//    }
+//    
+//    return _detailItem;
+//}
+
 
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -35,11 +51,36 @@
     UIColor *alphaColor = [self.view.backgroundColor colorWithAlphaComponent:0.8]; //透過率
     self.view.backgroundColor = alphaColor;
     
+    //[UIApplication sharedApplication]はdelegateを呼ぶときに必要なメッセージ構文
+    self.managedObjectContext = ((AppDelegate *)[[UIApplication sharedApplication]delegate]).managedObjectContext;
+    //新規でobjectを作る処理。Entityに値を新規で追加したい時。（何も入っていない箱だけ用意した感じ）
+    //_object = [NSEntityDescription insertNewObjectForEntityForName:@"Title" inManagedObjectContext:self.managedObjectContext];
+//    _object = [NSEntityDescription insertNewObjectForEntityForName:NSStringFromClass([Title class]) inManagedObjectContext:self.managedObjectContext];
+        
 }
+
+////セルにTitle.dateViewを保存している
+//- (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
+//{
+//
+
+
+//    Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
+//    cell.textLabel.text = title.dateView;
+//}
+
 
 //Doneを押されたときの処理
 - (IBAction)commitButtonClicked:(id)sender
 {
+    
+    
+    //****************************************************************************
+    //日付計算　現在時刻を取得してpickerに入力した時間との差を計算
+    //**********************************************************************
+    
+    
+    
     /********
     dateを保存する処理
     *********/
@@ -99,9 +140,64 @@
 //    NSLog(@"セーブデータ%@",[df1 stringFromDate:saveDate1.saveDate]);
     AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
     appDelegate.inPut = [df2 stringFromDate:inPut];
-     
+    NSLog(@"inPutされたのは%@",appDelegate.inPut);
 //    _nowDate= [df2 stringFromDate:inPut];
 //     NSLog(@"取得された日時は%@",_nowDate);
+    
+    
+    
+    
+    //////////////////////////////////////////////////
+    
+    
+    
+
+    
+    
+    // 作成したNSManagedObjectインスタンスに値を設定します。
+//    [_object setValue:[df2 stringFromDate:inPut] forKey:@"dateView"];
+    [self.detailItem setValue:[df2 stringFromDate:inPut] forKey:@"dateView"];
+
+    NSLog(@"managedObject======== %@",[_object description]);
+    
+    
+    // AppDelegateで取得したカテゴリーリストを取得する
+//    List = ((AppDelegate *)[[UIApplication sharedApplication]delegate]).fetchedobjects;
+//    for (Title *cate in List) {
+//        NSLog(@"pppppppppppppp%@",cate.dateView);
+//    }
+
+    NSError *error = nil;
+    if (![self.managedObjectContext save:&error]) {
+        NSLog(@"Unresolved error %@, %@",error,[error userInfo]);
+        abort();
+    }
+
+    
+    
+    ///////////////////////////////////////////////////
+    
+    
+    
+    
+    
+    
+    
+    NSLog(@"%d",self.selectnum);
+//     Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
+//    title.dateView = [df2 stringFromDate:inPut];
+    
+    
+    
+    //Delegateからデータを取得
+   // AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+    //NSString *inPut = appDelegate.inPut;
+    
+    //coreDateに時間を保存
+    //title.date = self.saveDate;
+    
+    //title.dateView = [df2 stringFromDate:inPut];
+    
     
     
     

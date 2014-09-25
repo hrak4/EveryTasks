@@ -16,6 +16,7 @@
 @dynamic date;
 @dynamic summary;
 @dynamic dateView;
+@dynamic id;
 @dynamic detail;
 
 @end

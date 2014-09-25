@@ -16,11 +16,15 @@
 @synthesize managedObjectModel = _managedObjectModel;
 @synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
 
+
+//アプリ起動直後に呼ばれるメソッド
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
     UINavigationController *navigationController = (UINavigationController *)self.window.rootViewController;
+  //topViewをインスタンス化している
     MasterViewController *controller = (MasterViewController *)navigationController.topViewController;
+    //topViewにmanagedObjectontextを引き渡している。同時に無かった場合は作って渡している。
     controller.managedObjectContext = self.managedObjectContext;
     return YES;
 }

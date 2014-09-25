@@ -18,6 +18,8 @@
 {
     //BOOL _IsVisible;
 }
+//メソッド内で毎回作った場合データが破棄されてしまうので、この画面全体でデータを保持するためにselfにプロパティを作った
+@property (nonatomic) NSMutableDictionary *notifications;
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath;
 @end
 
@@ -32,6 +34,7 @@
 //画面が表示されるたびに行われる処理
 -(void) viewWillDisappear:(BOOL)animated
 {
+     [self.tableView reloadData];
 }
 
 
@@ -60,10 +63,9 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
    
-    
-    
     self.navigationItem.leftBarButtonItem = self.editButtonItem;
-
+    self.notifications = [NSMutableDictionary new];
+    
     UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(insertNewObject:)];
     self.navigationItem.rightBarButtonItem = addButton;
     
@@ -116,14 +118,21 @@
 /*
  *View1を右にスワイプされた時のアニメーションメソッド
  ***/
-- (IBAction)myView_SwipeRight:(id)sender
+- (IBAction)myView_SwipeRight:(UISwipeGestureRecognizer*)sender
 {
-    NSLog(@"右にスワイプ");
+//    NSLog(@"右にスワイプ");
     //スライドさせたセルを認識（datePickerを保存）
     NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:[sender locationInView:self.tableView]];
-    NSLog(@"%@",indexPath);
+//    NSLog(@"%d",indexPath.row);
 
-    
+
+// スワイプしたときに、スワイプしたセルが持っているデータの中身を参照c
+//Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
+//NSLog(@"%@", title);
+
+
+    //coreDateに時間を保存
+    //title.date = self.saveDate;
     
 //    NSIndexPath *indexPath = [self.tableView indexPathForRowAtPoint:[sender locationInView:self.tableView]];
 
@@ -134,22 +143,28 @@
     
     
     //ナビゲーションコントローラーの機能で画面遷移
-    [self nextScreen];
+    [self nextScreen:indexPath];
 }
 
 
 //datePickerへの画面遷移のメソッド
-- (IBAction)nextScreen {
+- (IBAction)nextScreen:(NSIndexPath *)indexPath
+{
     //modalviewの背景を透明にする
     // 画面遷移エフェクトがなくなるので、そこは独自実装 モーダルビューのviewDidAppear:(BOOL)animatedに記述
     self.navigationController.modalPresentationStyle = UIModalPresentationCurrentContext;
     
+    // スワイプされた時のCoreDataオブジェクトを取得
+    Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
     
     // モーダルで表示
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     // Storyboard ID を指定して画面遷移
     DatePickerController *controller = [storyboard instantiateViewControllerWithIdentifier:@"DatePickerController"];
-   
+    controller.detailItem = title;
+    controller.selectnum = indexPath.row;
+    
+    
     // controllerにNavigationController を新たに付与
     UINavigationController* nc = [[UINavigationController alloc] initWithRootViewController:controller];
     // 画面遷移のアニメーションを設定
@@ -159,6 +174,13 @@
     
     
 }
+
+//time　LocalNotification
+//- (void) notification
+//{
+//    
+//}
+
 
 #pragma mark - Table View
 
@@ -170,25 +192,111 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     id <NSFetchedResultsSectionInfo> sectionInfo = [self.fetchedResultsController sections][section];
+
+    
+    
     return [sectionInfo numberOfObjects];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     CustomTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
-    [self configureCell:cell atIndexPath:indexPath];
-    
+   
+   // セルが持っているデータの中身を参照
     Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
-    cell.titleCell.text = title.summary;
-    NSLog(@"セーブデータは%@",title.summary);
-    //Delegateからデータを取得
-    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
-    NSString *inPut = appDelegate.inPut;
     
-    //coreDateに時間を保存
-    title.date = self.saveDate;
-    title.dateView = inPut;
+    cell.titleCell.text = title.summary;
     cell.dateCell.text = title.dateView;
+    
+    //現在日付取得
+    NSDate *now = [[NSDate date]init];
+    
+    //日付をどうゆうフォーマットで文字にするかを決めている。
+    NSDateFormatter *df = [[NSDateFormatter alloc] init];
+    //表示方法が変わる（"/"だったり）年月日の順番やどこまで表示するかなど（日までや時間までなど）
+    df.dateFormat = @"yyyy/MM/dd HH:mm:ss";
+    
+    //String型のtitle.dateViewをDate型に変換
+//NSLog(@"%@", title.dateView);
+    NSDateFormatter* inPutformatter = [[NSDateFormatter alloc]init];
+    inPutformatter.dateFormat = @"yyyy/MM/dd HH:mm";
+    //@"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    inPutformatter.timeZone = [NSTimeZone defaultTimeZone];
+    NSDate* inPut = [inPutformatter dateFromString:title.dateView];
+ //   NSDate* inPut = [inPutformatter dateFromString:title.dateView];
+    
+//////////////////////////////////////////////////////////////////////////////
+//    NSLog(@"inPutデータはここに表示=== %@",inPut);
+    
+    
+    
+    
+    
+    // dateAとdateBの時間の間隔を取得(dateA - dateBなイメージ)
+    NSTimeInterval since;
+    since = [inPut timeIntervalSinceDate:now];
+//    NSLog(@"日時の差は%f",since);
+    
+    /*******通知されていないnotification を取る
+     *****************************************/
+    UIApplication *app = [UIApplication sharedApplication];
+    //NSArray *notification = [[NSArray alloc] initWithArray:app.scheduledLocalNotifications copyItems:YES];
+    //LocalNotificationを全部キャンセル
+    [app cancelAllLocalNotifications];
+    
+    //notificationで通知
+    UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+    
+    /*************
+     現在時刻と通知したい時刻との差の時間を計算する。
+     ***************/
+    localNotification.fireDate = [NSDate dateWithTimeIntervalSinceNow:since];
+    localNotification.alertBody = title.summary;
+    //defaultTimeZoneにするとiPhoneで設定している時間になる（地域で設定も可）
+    localNotification.timeZone = [NSTimeZone defaultTimeZone];
+
+    //notificationデータを辞書データで管理しようとする
+    NSString *cellIndex = [NSString stringWithFormat:@"%d", indexPath.row];
+    //allKeysとはnotificationが持っているkeyを全て持ってきている。
+    //その中で今スワイプされてきたものが含まれているかチェックするのがcontainsObject
+    if ([[self.notifications allKeys] containsObject:cellIndex]) {
+        [self.notifications removeObjectForKey:cellIndex];
+        [self.notifications setObject:localNotification forKey:cellIndex];
+    } else {
+        [self.notifications setObject:localNotification forKey:cellIndex];
+    }
+
+    
+    for (NSString *key in [self.notifications allKeys]) {
+        UILocalNotification *notification = self.notifications[key];
+        NSDate *fireDate = notification.fireDate;
+        NSDate *now = [NSDate new];
+        //通知設定時間が現在より昔の設定だった場合、通知する必要がないので、削除する。
+        if ([fireDate compare:now] == NSOrderedAscending) {
+            [self.notifications removeObjectForKey:key];
+        }
+    }
+    
+    //通知の最終設定
+    for (NSString *key in [self.notifications allKeys]) {
+        [app scheduleLocalNotification:self.notifications[key]];
+    }
+
+    
+    //Delegateからデータを取得
+//    AppDelegate *appDelegate = [[UIApplication sharedApplication] delegate];
+//    NSString *inPut = appDelegate.inPut;
+//    
+//    //coreDateに時間を保存
+//    //title.date = self.saveDate;
+//
+//    title.dateView = inPut;
+    
+//    if (title.dateView != nil) {
+//        
+//        cell.dateCell.text = title.dateView;
+//    }
+    
     
 //    NSDateFormatter *df = [[NSDateFormatter alloc] init];
 //    df.dateFormat = @"yyyy/MM/dd　HH:mm";
@@ -230,6 +338,7 @@
   //  [cell setBackgroundColor:[UIColor color];
    
   // cell.dateCell.text = @"日付";
+     [self configureCell:cell atIndexPath:indexPath];
     return cell;
 }
 
@@ -261,7 +370,7 @@
     return NO;
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)tableView:(UITableView *)tableView sRowAtIndexPath:(NSIndexPath *)indexPath
 {
 //    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         Title *selectedObject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
@@ -271,20 +380,29 @@
 //    }
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    [self performSegueWithIdentifier:@"showDetail" sender:indexPath];
+}
 
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
-NSLog(@"%@", segue.identifier);
     if ([[segue identifier] isEqualToString:@"createDetail"]) {
         NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         Title *selectedobject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
         [[segue destinationViewController] setDetailItem:selectedobject];
     }
-    
-    [[segue destinationViewController]
-     setManagedObjectContext:self.fetchedResultsController.managedObjectContext];
 
+    if ([[segue identifier] isEqualToString:@"showDetail"]) {
+        NSIndexPath *indexPath = sender;
+        Title *selectedobject = [[self fetchedResultsController] objectAtIndexPath:indexPath];
+//        DetailViewController *controller = [segue destinationViewController];
+//        controller.detailItem = selectedobject;
+        [[segue destinationViewController] setDetailItem:selectedobject];
+    }
+    
+    [[segue destinationViewController] setManagedObjectContext:self.fetchedResultsController.managedObjectContext];
 }
 
 #pragma mark - Fetched results controller
@@ -304,7 +422,7 @@ NSLog(@"%@", segue.identifier);
     [fetchRequest setFetchBatchSize:20];
     
     // Edit the sort key as appropriate.
-    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"summary" ascending:NO];
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"date" ascending:NO];
     NSArray *sortDescriptors = @[sortDescriptor];
     
     [fetchRequest setSortDescriptors:sortDescriptors];
@@ -376,6 +494,7 @@ NSLog(@"%@", segue.identifier);
     [self.tableView endUpdates];
 }
 
+
 /*
 // Implementing the above methods to update the table view in response to individual changes may have performance implications if a large number of changes are made simultaneously. If this proves to be an issue, you can instead just implement controllerDidChangeContent: which notifies the delegate that all section and object changes have been processed. 
  
@@ -388,8 +507,9 @@ NSLog(@"%@", segue.identifier);
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
 {
-//    Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
-//    cell.textLabel.text = title.summary;
+    Title *title = [self.fetchedResultsController objectAtIndexPath:indexPath];
+    CustomTableViewCell *dateCell = [[CustomTableViewCell alloc] init];
+    dateCell.dateCell.text = title.dateView;
 
 }
 

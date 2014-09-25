@@ -17,6 +17,7 @@
 @property (nonatomic, retain) NSDate * date;
 @property (nonatomic, retain) NSString * summary;
 @property (nonatomic, retain) NSString *dateView;
+@property (nonatomic) NSNumber* id;
 @property (nonatomic, retain) Detail *detail;
 
 @end

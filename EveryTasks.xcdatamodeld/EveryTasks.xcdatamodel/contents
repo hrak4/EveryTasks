@@ -8,11 +8,12 @@
         <attribute name="completed" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="date" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="dateView" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="id" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="summary" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="detail" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Detail" inverseName="title" inverseEntity="Detail" syncable="YES"/>
     </entity>
     <elements>
         <element name="Detail" positionX="-54" positionY="-9" width="128" height="75"/>
-        <element name="Title" positionX="-236" positionY="-9" width="128" height="118"/>
+        <element name="Title" positionX="-236" positionY="-9" width="128" height="133"/>
     </elements>
 </model>

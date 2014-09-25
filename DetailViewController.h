@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Title.h"
-@interface DetailViewController : UIViewController
+@interface DetailViewController : UIViewController <UITextFieldDelegate>
 
 @property (strong, nonatomic) Title *detailItem;
 
